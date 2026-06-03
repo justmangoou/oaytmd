@@ -9,7 +9,7 @@ It is intended to be a minimal controller for YouTube Music Desktop and only inc
 **As a result, pull requests that add new actions or support platforms that do not implement OpenActionAPI will not be accepted.**
 
 ### Actions
-- Play / Pause (not implemented yet)
+- Play / Pause
 - Next / Previous Track
 - Volume Control (Encoder)
 - Shuffle

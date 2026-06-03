@@ -1,14 +1,45 @@
-use openaction::{Action, Instance, OpenActionResult, async_trait};
-use oaytmd_companion::models::request::CommandRequest;
+use std::collections::HashMap;
 
-use crate::actions::send_command;
+use openaction::{Action, Instance, OpenActionResult, async_trait};
+use oaytmd_companion::models::{TrackState, request::CommandRequest};
+
+use crate::{actions::send_command, client::ytmd_player};
 
 pub struct PlayPauseAction;
 
+async fn set_new_state(instance: &Instance, state: &TrackState) -> OpenActionResult<()> {
+	let new_state = match state {
+        TrackState::Unknown |
+        TrackState::Buffering |
+		TrackState::Playing => 0,
+		TrackState::Paused => 1,
+	};
+
+	instance.set_state(new_state).await
+}
+
 #[async_trait]
 impl Action for PlayPauseAction {
-	const UUID: &'static str = "justmangoou.oaytmd.playPause";
-	type Settings = ();
+	const UUID: &'static str = "justmangoou.oaytmd.playpause";
+	type Settings = HashMap<String, String>;
+
+	async fn did_receive_settings(
+		&self,
+		instance: &Instance,
+		_settings: &Self::Settings,
+	) -> OpenActionResult<()> {
+		let player = ytmd_player().load();
+		set_new_state(instance, &player.track_state).await
+	}
+
+	async fn will_appear(
+		&self,
+		instance: &Instance,
+		_settings: &Self::Settings,
+	) -> OpenActionResult<()> {
+		let player = ytmd_player().load();
+		set_new_state(instance, &player.track_state).await
+	}
 
 	async fn key_up(
 		&self,

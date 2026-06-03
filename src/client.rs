@@ -4,13 +4,14 @@ use arc_swap::{ArcSwap, ArcSwapOption};
 use openaction::set_global_settings;
 use oaytmd_companion::{
 	Client, ClientSettings,
-	models::{RepeatMode, request::CommandRequest},
+	models::{RepeatMode, TrackState, request::CommandRequest},
 };
 
 use crate::{actions::VOLUME_CHANGE_ACCUMULATOR, current_settings, ws_events::handle_ws_event};
 
 #[derive(Default)]
 pub struct PlayerWrapper {
+    pub track_state: TrackState,
 	pub muted: bool,
 	pub volume: u32,
 	pub repeat_mode: RepeatMode,

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use oaytmd_companion::models::response::{StateResponse, WebsocketEvent};
 use openaction::{Action, visible_instances};
 
-use crate::{actions::RepeatAction, client::{PlayerWrapper, ytmd_player}};
+use crate::{actions::{PlayPauseAction, RepeatAction}, client::{PlayerWrapper, ytmd_player}};
 
 pub async fn handle_ws_event(item: WebsocketEvent) {
 	match item {
@@ -16,6 +16,7 @@ pub async fn handle_ws_event(item: WebsocketEvent) {
 
 async fn apply_state_update(state: StateResponse) {
 	ytmd_player().store(Arc::new(PlayerWrapper {
+        track_state: state.player.track_state,
 		muted: state.player.muted,
 		volume: state.player.volume,
 		repeat_mode: state
@@ -25,6 +26,7 @@ async fn apply_state_update(state: StateResponse) {
 			.unwrap_or_default(),
 	}));
 
+	call_did_receive_settings(PlayPauseAction::UUID).await;
 	call_did_receive_settings(RepeatAction::UUID).await;
 }
 

@@ -22,13 +22,13 @@
   "GlobalSettingsInPropertyInspectorPath": "settings",
   "Actions": [
     {
-      "UUID": "justmangoou.oaytmd.playPause",
+      "UUID": "justmangoou.oaytmd.playpause",
       "Name": "Play/Pause",
       "Icon": "actions/play",
       "Tooltip": "Toggle play/pause",
       "Controllers": ["Keypad"],
       "DisableAutomaticStates": true,
-      "States": [{ "Image": "actions/play" }]
+      "States": [{ "Image": "actions/play" }, { "Image": "actions/pause" }]
     },
     {
       "UUID": "justmangoou.oaytmd.next",
