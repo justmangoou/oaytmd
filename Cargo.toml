@@ -1,5 +1,5 @@
 [workspace]
-resolve = "3"
+resolver = "3"
 members = [
     "ytmd-companion"
 ]
