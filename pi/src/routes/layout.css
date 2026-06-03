@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-neutral-800 p-3;
+}
+
+button {
+  @apply px-3 py-2;
+  @apply text-sm text-neutral-300;
+  @apply bg-neutral-700;
+}
+
+input {
+  @apply px-3 py-2;
+  @apply text-sm text-neutral-300;
+  @apply bg-neutral-700;
+  @apply rounded-lg border border-neutral-600 outline-hidden;
+  @apply transition-colors duration-200;
+
+  /* Firefox */
+  -moz-appearance: textfield;
+}
+
+/* Chrome, Edge, Safari */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input:hover {
+  @apply border-neutral-500;
+}
+
+input:focus {
+  @apply border-neutral-400 bg-neutral-600;
+}
+
+select {
+  @apply appearance-none;
+  @apply px-3 py-2;
+  @apply text-sm text-neutral-300;
+  @apply bg-neutral-700;
+  @apply rounded-lg border border-neutral-600 outline-hidden;
+  @apply cursor-pointer;
+}
+
+.input-wrapper {
+  @apply relative;
+}
+
+.select-wrapper {
+  @apply relative;
+}
+
+.select-wrapper::after {
+  @apply absolute top-[47.5%] right-4 -translate-y-1/2;
+  @apply h-2 w-2 rotate-45;
+  @apply border-r-2 border-b-2 border-neutral-400;
+  @apply pointer-events-none content-["_"];
+}
+
+.settings-grid {
+  @apply grid grid-cols-[250px_1fr] items-center;
+}

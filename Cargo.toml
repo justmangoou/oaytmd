@@ -1,0 +1,37 @@
+[workspace]
+resolve = "3"
+members = [
+    "companion"
+]
+
+[workspace.dependencies]
+arc-swap = "1.9"
+tokio = { version = "1.48", features = ["rt-multi-thread", "macros"] }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+tokio-websockets = { version = "0.13", default-features = false, features = ["client", "fastrand", "openssl"] }
+reqwest = { version = "0.13", default-features = false, features = ["json"] }
+
+thiserror = "1.0"
+
+[package]
+name = "oaytmd"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ytmd-companion-rs = { path = "companion" }
+
+openaction = "2.3"
+
+arc-swap.workspace = true
+tokio.workspace = true
+
+serde.workspace = true
+serde_json.workspace = true
+
+log = "0.4"
+simplelog = "0.12"
+thiserror.workspace = true

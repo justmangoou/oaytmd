@@ -1,0 +1,16 @@
+[package]
+name = "ytmd-companion-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+arc-swap.workspace = true
+tokio.workspace = true
+
+tokio-websockets.workspace = true
+reqwest.workspace = true
+
+serde.workspace = true
+serde_json.workspace = true
+
+thiserror.workspace = true

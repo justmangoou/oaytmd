@@ -1,0 +1,64 @@
+{
+  "Name": "YTMD Controller",
+  "Author": "justmangoou",
+  "Version": "0.1.0",
+  "Category": "YTMD Controller",
+  "Icon": "icon",
+  "OS": [
+    { "Platform": "windows" },
+    { "Platform": "mac" },
+    { "Platform": "linux" }
+  ],
+  "CodePaths": {
+    "x86_64-pc-windows-msvc": "oaytmd-x86_64-pc-windows-msvc.exe",
+    "x86_64-apple-darwin": "oaytmd-x86_64-apple-darwin",
+    "aarch64-apple-darwin": "oaytmd-x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu": "oaytmd-x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu": "oaytmd-x86_64-unknown-linux-gnu"
+  },
+  "CodePathWin": "oaytmd-x86_64-pc-windows-msvc.exe",
+  "CodePathMac": "oaytmd-x86_64-apple-darwin",
+  "CodePathLin": "oaytmd-x86_64-unknown-linux-gnu",
+  "GlobalSettingsInPropertyInspectorPath": "settings",
+  "Actions": [
+    {
+      "UUID": "justmangoou.oaytmd.playPause",
+      "Name": "Play/Pause",
+      "Icon": "actions/play",
+      "Tooltip": "Toggle play/pause",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [{ "Image": "actions/play" }]
+    },
+    {
+      "UUID": "justmangoou.oaytmd.next",
+      "Name": "Next Track",
+      "Icon": "actions/next",
+      "Tooltip": "Skip to next track",
+      "Controllers": ["Keypad"],
+      "PropertyInspectorPath": "pi/simple.html",
+      "DisableAutomaticStates": true,
+      "States": [{ "Image": "actions/next" }]
+    },
+    {
+      "UUID": "justmangoou.oaytmd.previous",
+      "Name": "Previous Track",
+      "Icon": "actions/previous",
+      "Tooltip": "Go to previous track",
+      "Controllers": ["Keypad"],
+      "PropertyInspectorPath": "pi/simple.html",
+      "DisableAutomaticStates": true,
+      "States": [{ "Image": "actions/previous" }]
+    },
+    {
+      "UUID": "justmangoou.oaytmd.shuffle",
+      "Name": "Shuffle",
+      "Icon": "actions/shuffle",
+      "Tooltip": "Toggle shuffle",
+      "Controllers": ["Keypad"],
+      "PropertyInspectorPath": "pi/simple.html",
+      "DisableAutomaticStates": true,
+      "States": [{ "Image": "actions/shuffle" }]
+    }
+  ]
+}
