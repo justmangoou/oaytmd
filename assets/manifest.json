@@ -27,6 +27,7 @@
       "Icon": "actions/play",
       "Tooltip": "Toggle play/pause",
       "Controllers": ["Keypad"],
+      "PropertyInspectorPath": "pi/simple.html",
       "DisableAutomaticStates": true,
       "States": [{ "Image": "actions/play" }, { "Image": "actions/pause" }]
     },
