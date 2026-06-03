@@ -2,11 +2,11 @@
 This OpenAction Plugin allows you to control the [YouTube Music Desktop App](https://github.com/ytmdesktop/ytmdesktop).
 
 #### Note
-This plugin is a simplified Rust reimplementation(https://github.com/OpenActionAPI/rust) of [YTMD-StreamDeck](https://github.com/XeroxDev/YTMD-StreamDeck/) built using [OpenActionAPI].  
+This plugin is a simplified Rust reimplementation of [YTMD-StreamDeck](https://github.com/XeroxDev/YTMD-StreamDeck/) built using [OpenActionAPI](https://github.com/OpenActionAPI/rust).  
 
 It is intended to be a minimal controller for YouTube Music Desktop and only includes the actions that I personally use. If you need additional functionality, please use the original plugin or fork this repository and implement it yourself.
 
-**As a result, pull requests that add new actions will not be accepted.**
+**As a result, pull requests that add new actions or support platforms that do not implement OpenActionAPI will not be accepted.**
 
 ### Actions
 - Play / Pause (not implemented yet)
