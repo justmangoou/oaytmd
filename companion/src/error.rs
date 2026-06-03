@@ -9,6 +9,9 @@ pub enum Error {
 		message: Option<String>,
 	},
 
+	#[error("Socket client not connected")]
+	SocketClientNotConnected,
+
 	#[error("Unexpected response: {0}")]
 	UnexpectedResponse(String),
 }

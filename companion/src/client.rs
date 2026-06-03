@@ -1,12 +1,12 @@
-use arc_swap::ArcSwap;
+use arc_swap::{ArcSwap, ArcSwapOption};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::{
-	Result,
+	Error, Result,
 	models::{
 		request::{AuthCodeRequest, AuthRequest, CommandRequest},
-		response::{AuthCodeResponse, AuthResponse, StateResponse},
+		response::{AuthCodeResponse, AuthResponse, StateResponse, WebsocketEvent},
 	},
 };
 
@@ -20,32 +20,88 @@ pub struct ClientSettings {
 	pub app_version: String,
 	pub host: String,
 	pub port: u16,
-	pub token: Option<String>, // Token added back
+	pub token: Option<String>,
 }
 
 impl ClientSettings {
 	pub fn base_url(&self) -> String {
-		format!("http://{}:{}/api/v1", self.host, self.port)
+		format!("http://{}:{}", self.host, self.port)
+	}
+
+	pub fn api_url(&self) -> String {
+		format!("{}{}", self.base_url(), "/api/v1")
 	}
 }
 
 pub struct Client {
 	pub settings: ArcSwap<ClientSettings>,
 	rest: ArcSwap<rest::RestClient>,
+	socket: ArcSwapOption<socket::SocketClient>,
 }
 
 impl Client {
 	pub fn new(settings: ClientSettings) -> Self {
-		let rest_client = rest::RestClient::new(settings.base_url());
+		let rest_client = rest::RestClient::new(settings.api_url());
 
 		Self {
-			rest: ArcSwap::from_pointee(rest_client),
 			settings: ArcSwap::from_pointee(settings),
+			rest: ArcSwap::from_pointee(rest_client),
+			socket: ArcSwapOption::from(None),
 		}
 	}
 
+	pub async fn connect(&self, force_reauth: bool) -> Result<()> {
+		let settings = if force_reauth {
+			let current = self.settings.load();
+
+			let code_resp = self.auth_request_code().await?;
+			let auth_resp = self.auth_request(code_resp.code).await?;
+
+			let mut new_settings = (**current).clone();
+			new_settings.token = Some(auth_resp.token.clone());
+
+			let new_rest = rest::RestClient::new(new_settings.api_url());
+
+			let arc_settings = Arc::new(new_settings);
+			self.settings.store(arc_settings.clone());
+			self.rest.store(Arc::new(new_rest));
+
+			arc_settings
+		} else {
+			arc_swap::Guard::into_inner(self.settings.load())
+		};
+
+		// Reads fresh host, port, and token cleanly from unified Arc context
+		let socket_client =
+			socket::SocketClient::connect(&settings.base_url(), settings.token.clone()).await;
+
+		self.socket.store(Some(Arc::new(socket_client)));
+
+		Ok(())
+	}
+
+	pub fn setup_event_handler<F, Fut>(&self, func: F) -> Result<tokio::task::JoinHandle<()>>
+	where
+		F: Fn(WebsocketEvent) -> Fut + Send + Sync + 'static,
+		Fut: Future<Output = ()> + Send + 'static,
+	{
+		let socket = self
+			.socket
+			.load()
+			.as_ref()
+			.cloned()
+			.ok_or(Error::SocketClientNotConnected)?;
+		let mut rx = socket.subscribe();
+
+		Ok(tokio::spawn(async move {
+			while let Ok(event) = rx.recv().await {
+				func(event).await;
+			}
+		}))
+	}
+
 	pub fn set_settings(&self, new_settings: ClientSettings) {
-		let new_rest_client = rest::RestClient::new(new_settings.base_url());
+		let new_rest_client = rest::RestClient::new(new_settings.api_url());
 
 		self.settings.store(Arc::new(new_settings));
 		self.rest.store(Arc::new(new_rest_client));
@@ -58,31 +114,7 @@ impl Client {
 		rest.get("/state", settings.token.as_deref()).await
 	}
 
-	pub async fn auth_request(&self, code: String) -> Result<AuthResponse> {
-		let current_settings = self.settings.load();
-		let rest = self.rest.load();
-
-		let response = rest
-			.post::<AuthRequest, AuthResponse>(
-				"/auth/request",
-				&AuthRequest {
-					app_id: current_settings.app_id.clone(),
-					code,
-				},
-				current_settings.token.as_deref(),
-			)
-			.await?
-			.ok_or_else(|| crate::Error::UnexpectedResponse("No auth token received".into()))?;
-
-		let mut new_settings = (**current_settings).clone();
-		new_settings.token = Some(response.token.clone());
-
-		self.settings.store(Arc::new(new_settings));
-
-		Ok(response)
-	}
-
-	pub async fn auth_request_code(&self) -> Result<AuthCodeResponse> {
+	async fn auth_request_code(&self) -> Result<AuthCodeResponse> {
 		let settings = self.settings.load();
 		let rest = self.rest.load();
 
@@ -97,6 +129,22 @@ impl Client {
 		)
 		.await?
 		.ok_or_else(|| crate::Error::UnexpectedResponse("No auth code received".into()))
+	}
+
+	async fn auth_request(&self, code: String) -> Result<AuthResponse> {
+		let settings = self.settings.load();
+		let rest = self.rest.load();
+
+		rest.post::<AuthRequest, AuthResponse>(
+			"/auth/request",
+			&AuthRequest {
+				app_id: settings.app_id.clone(),
+				code,
+			},
+			settings.token.as_deref(),
+		)
+		.await?
+		.ok_or_else(|| crate::Error::UnexpectedResponse("No auth token received".into()))
 	}
 
 	pub async fn send_command(&self, command: &CommandRequest) -> Result<()> {

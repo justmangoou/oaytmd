@@ -11,6 +11,7 @@ use crate::client::reinitialize;
 
 mod actions;
 mod client;
+mod ws_events;
 
 use actions::*;
 
@@ -104,6 +105,7 @@ async fn main() -> OpenActionResult<()> {
 	register_action(PreviousAction).await;
 	register_action(RepeatAction).await;
 	register_action(ShuffleAction).await;
+	register_action(VolumeControlAction).await;
 
 	run(std::env::args().collect()).await
 }

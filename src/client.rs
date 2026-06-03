@@ -1,13 +1,29 @@
-use arc_swap::ArcSwapOption;
-use openaction::set_global_settings;
 use std::sync::{Arc, OnceLock};
-use ytmd_companion_rs::{Client, ClientSettings};
 
-use crate::current_settings;
+use arc_swap::{ArcSwap, ArcSwapOption};
+use openaction::set_global_settings;
+use ytmd_companion_rs::{
+	Client, ClientSettings,
+	models::{RepeatMode, request::CommandRequest},
+};
+
+use crate::{actions::VOLUME_CHANGE_ACCUMULATOR, current_settings, ws_events::handle_ws_event};
+
+#[derive(Default)]
+pub struct PlayerWrapper {
+	pub muted: bool,
+	pub volume: u32,
+	pub repeat_mode: RepeatMode,
+}
 
 pub fn ytmd_client() -> &'static ArcSwapOption<Client> {
 	static CLIENT: OnceLock<ArcSwapOption<Client>> = OnceLock::new();
 	CLIENT.get_or_init(|| ArcSwapOption::from(None))
+}
+
+pub fn ytmd_player() -> &'static ArcSwap<PlayerWrapper> {
+	static PLAYER: OnceLock<ArcSwap<PlayerWrapper>> = OnceLock::new();
+	PLAYER.get_or_init(|| ArcSwap::from_pointee(PlayerWrapper::default()))
 }
 
 pub(crate) async fn update_error(error: Option<&str>) {
@@ -28,61 +44,90 @@ pub(crate) async fn update_error(error: Option<&str>) {
 }
 
 pub(crate) async fn reinitialize() {
-	let current_app_settings = current_settings().load();
-
-	let client_settings = ClientSettings {
-		app_id: current_app_settings.client_settings.app_id.clone(),
-		app_name: current_app_settings.client_settings.app_name.clone(),
-		app_version: current_app_settings.client_settings.app_version.clone(),
-		host: current_app_settings.client_settings.host.clone(),
-		port: current_app_settings.client_settings.port,
-		token: current_app_settings.client_settings.token.clone(),
+	let client_settings = {
+		let settings = current_settings().load();
+		settings.client_settings.clone()
 	};
 
-	drop(current_app_settings);
-
-	let client = Client::new(client_settings);
-
-	if client.settings.load().token.is_some() {
-		ytmd_client().store(Some(Arc::new(client)));
-		return;
-	}
-
-	let code_response = match client.auth_request_code().await {
-		Ok(res) => res,
+	let client = match setup_client(client_settings).await {
+		Ok(client) => client,
 		Err(e) => {
-			log::error!("Failed to request auth code from YTMD: {}", e);
-			update_error(Some(&format!(
-				"Authentication initialization failed: {}",
-				e
-			)))
-			.await;
+			log::error!("Failed to connect to YTMD: {e}");
+			update_error(Some(&format!("Connection failed: {e}"))).await;
 			return;
 		}
 	};
 
-	match client.auth_request(code_response.code).await {
-		Ok(_) => {
-			log::info!("YTMD Authentication successful!");
+	log::info!("YTMD Authentication successful!");
 
-			let client_arc = Arc::new(client);
-			ytmd_client().store(Some(client_arc.clone()));
+	let token = client.settings.load().token.clone();
+	let client_arc = Arc::new(client);
 
-			let current_guard = current_settings().load();
-			let mut updated_settings = (**current_guard).clone();
+	ytmd_client().store(Some(client_arc.clone()));
 
-			updated_settings.client_settings.token = client_arc.settings.load().token.clone();
+	let current_guard = current_settings().load();
+	let mut updated_settings = (**current_guard).clone();
+	updated_settings.client_settings.token = token;
 
-			if let Err(e) = openaction::set_global_settings(&updated_settings).await {
-				log::error!("Failed to persist token to OpenAction store: {}", e);
+	if let Err(e) = openaction::set_global_settings(&updated_settings).await {
+		log::error!("Failed to persist token to OpenAction store: {}", e);
+	}
+}
+
+async fn setup_client(client_settings: ClientSettings) -> Result<Client, String> {
+	let client = Client::new(client_settings);
+
+	client
+		.connect(false)
+		.await
+		.map_err(|e| format!("Failed to connect to YTMD: {}", e))?;
+
+	client
+		.setup_event_handler(handle_ws_event)
+		.map_err(|e| format!("Failed to set up event handler for YTMD client: {}", e))?;
+
+	volume_change_watcher();
+
+	Ok(client)
+}
+
+fn volume_change_watcher() {
+	tokio::spawn(async {
+		let mut interval = tokio::time::interval(std::time::Duration::from_millis(500));
+
+		loop {
+			interval.tick().await;
+
+			let delta = {
+				let mut accumulated = VOLUME_CHANGE_ACCUMULATOR.lock().await;
+
+				let delta = *accumulated;
+				*accumulated = 0;
+				delta
+			} as i16;
+
+			if delta == 0 {
+				continue;
 			}
 
-			current_settings().store(Arc::new(updated_settings));
-			update_error(None).await;
+			let current_volume = ytmd_player().load().volume as i16;
+			let new_volume = (current_volume + delta).clamp(0, 100) as u8;
+
+			let client_lock = ytmd_client().load();
+			let client = match client_lock.as_ref() {
+				Some(c) => c,
+				None => {
+					log::error!("YouTube Music client is not connected");
+					continue;
+				}
+			};
+
+			if let Err(e) = client
+				.send_command(&CommandRequest::SetVolume(new_volume))
+				.await
+			{
+				log::error!("Failed to send volume change command: {}", e);
+			}
 		}
-		Err(e) => {
-			log::error!("Failed to exchange authorization pin with YTMD: {}", e);
-			update_error(Some(&format!("Authentication exchange failed: {}", e))).await;
-		}
-	}
+	});
 }

@@ -25,15 +25,15 @@ pub struct StateResponse {
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#player-object>
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Player {
-	pub ad_playing: bool,
+	pub track_state: TrackState,
+	pub video_progress: f32,
+	pub volume: u32,
+	pub muted: bool,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub queue: Option<Queue>,
-	pub track_state: TrackState,
-	pub video_progress: u32,
-	pub volume: u32,
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#queue-object>
@@ -46,7 +46,7 @@ pub struct Queue {
 	pub is_generating: bool,
 	pub is_infinite: bool,
 	pub repeat_mode: RepeatMode,
-	pub selected_item_index: u32,
+	pub selected_item_index: Option<u32>,
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#queue-item-object>
@@ -56,7 +56,7 @@ pub struct QueueItem {
 	pub thumbnails: Vec<Thumbnail>,
 	pub title: String,
 	pub author: String,
-	pub duration: String,
+	pub duration: Option<String>,
 	pub selected: bool,
 	pub video_id: String,
 	#[serde(skip_serializing_if = "Option::is_none")]
@@ -70,10 +70,16 @@ pub struct Video {
 	pub author: String,
 	pub channel_id: String,
 	pub title: String,
-	pub album: String,
-	pub album_id: String,
+	pub album: Option<String>,
+	pub album_id: Option<String>,
 	pub like_status: LikeStatus,
 	pub thumbnails: Vec<Thumbnail>,
 	pub duration_seconds: u32,
 	pub id: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub enum WebsocketEvent {
+	StateUpdate(StateResponse),
+	Error(String),
 }

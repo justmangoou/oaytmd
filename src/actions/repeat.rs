@@ -1,8 +1,9 @@
+use std::collections::HashMap;
+
 use openaction::{Action, Instance, OpenActionResult, async_trait};
-use serde::{Deserialize, Serialize};
 use ytmd_companion_rs::models::{RepeatMode, request::CommandRequest};
 
-use crate::actions::send_command;
+use crate::{actions::send_command, client::ytmd_player};
 
 async fn set_new_state(instance: &Instance, mode: &RepeatMode) -> OpenActionResult<()> {
 	let new_state = match mode {
@@ -14,44 +15,38 @@ async fn set_new_state(instance: &Instance, mode: &RepeatMode) -> OpenActionResu
 	instance.set_state(new_state).await
 }
 
-#[derive(Serialize, Deserialize, Default)]
-pub struct RepeatActionSettings {
-	pub mode: RepeatMode,
-}
-
 pub struct RepeatAction;
 
 #[async_trait]
 impl Action for RepeatAction {
 	const UUID: &'static str = "justmangoou.oaytmd.repeat";
-	type Settings = RepeatActionSettings;
+	type Settings = HashMap<String, String>;
 
 	async fn did_receive_settings(
 		&self,
 		instance: &Instance,
-		settings: &Self::Settings,
+		_settings: &Self::Settings,
 	) -> OpenActionResult<()> {
-		set_new_state(instance, &settings.mode).await
+		let player = ytmd_player().load();
+		set_new_state(instance, &player.repeat_mode).await
 	}
 
 	async fn will_appear(
 		&self,
-		_instance: &Instance,
+		instance: &Instance,
 		_settings: &Self::Settings,
 	) -> OpenActionResult<()> {
-		Ok(())
+		let player = ytmd_player().load();
+		set_new_state(instance, &player.repeat_mode).await
 	}
 
-	async fn will_disappear(
+	async fn key_up(
 		&self,
-		_instance: &Instance,
+		instance: &Instance,
 		_settings: &Self::Settings,
 	) -> OpenActionResult<()> {
-		Ok(())
-	}
-
-	async fn key_up(&self, instance: &Instance, settings: &Self::Settings) -> OpenActionResult<()> {
-		let new_mode = match settings.mode {
+		let player = ytmd_player().load();
+		let new_mode = match player.repeat_mode {
 			RepeatMode::Unknown => RepeatMode::None,
 			RepeatMode::None => RepeatMode::All,
 			RepeatMode::All => RepeatMode::One,
@@ -61,9 +56,6 @@ impl Action for RepeatAction {
 		match send_command(instance, &CommandRequest::RepeatMode(new_mode.clone())).await {
 			Ok(_) => {
 				set_new_state(instance, &new_mode).await?;
-				instance
-					.set_settings(&RepeatActionSettings { mode: new_mode })
-					.await?;
 			}
 			Err(error) => {
 				log::error!("Failed to send repeat mode command: {}", error);

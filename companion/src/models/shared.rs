@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize_repr, Deserialize_repr, Default, Debug, Clone)]
 #[repr(i8)]
 pub enum RepeatMode {
 	Unknown = -1,
@@ -11,16 +12,18 @@ pub enum RepeatMode {
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#track-state-enum>
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize_repr, Deserialize_repr, Default, Debug, Clone)]
+#[repr(i8)]
 pub enum TrackState {
 	Unknown = -1,
+	#[default]
 	Paused = 0,
 	Playing = 1,
 	Buffering = 2,
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#like-status-enum>
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize_repr, Deserialize_repr, Default, Debug, Clone)]
 #[repr(i8)]
 pub enum LikeStatus {
 	Unknown = -1,
@@ -31,7 +34,7 @@ pub enum LikeStatus {
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#video-type-enum>
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize_repr, Deserialize_repr, Debug, Clone)]
 #[repr(i8)]
 pub enum VideoType {
 	Unknown = -1,

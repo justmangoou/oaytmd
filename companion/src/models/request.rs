@@ -38,6 +38,6 @@ pub enum CommandRequest {
 	RepeatMode(RepeatMode),
 	Shuffle(bool),
 	PlayQueueIndex(u32),
-	ToggleLike,
-	ToggleDislike,
+	// ToggleLike,
+	// ToggleDislike,
 }

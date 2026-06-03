@@ -7,13 +7,16 @@ members = [
 [workspace.dependencies]
 arc-swap = "1.9"
 tokio = { version = "1.48", features = ["rt-multi-thread", "macros"] }
+futures-util = "0.3"
 
 serde = { version = "1.0", features = ["derive"] }
+serde_repr = "0.1"
 serde_json = "1.0"
 
-tokio-websockets = { version = "0.13", default-features = false, features = ["client", "fastrand", "openssl"] }
 reqwest = { version = "0.13", default-features = false, features = ["json"] }
+rust_socketio = { version = "*", features = ["async"] }
 
+log = "0.4"
 thiserror = "1.0"
 
 [package]
@@ -32,9 +35,8 @@ tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
-log = "0.4"
+log.workspace = true
 simplelog = "0.12"
-thiserror.workspace = true
 
 [profile.release]
 opt-level = 3

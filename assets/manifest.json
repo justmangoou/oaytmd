@@ -59,6 +59,26 @@
       "PropertyInspectorPath": "pi/simple.html",
       "DisableAutomaticStates": true,
       "States": [{ "Image": "actions/shuffle" }]
+    },
+    {
+      "UUID": "justmangoou.oaytmd.repeat",
+      "Name": "Repeat",
+      "Icon": "actions/repeat_0",
+      "Tooltip": "Toggle repeat",
+      "Controllers": ["Keypad"],
+      "PropertyInspectorPath": "pi/simple.html",
+      "DisableAutomaticStates": true,
+      "States": [{ "Image": "actions/repeat_0" }, { "Image": "actions/repeat_1" }, { "Image": "actions/repeat_2" }]
+    },
+    {
+      "UUID": "justmangoou.oaytmd.volumecontrol",
+      "Name": "Volume Control",
+      "Icon": "actions/volume",
+      "Tooltip": "Control volume",
+      "Controllers": ["Encoder"],
+      "PropertyInspectorPath": "pi/volumecontrol.html",
+      "DisableAutomaticStates": true,
+      "States": [{ "Image": "actions/volume" }]
     }
   ]
 }

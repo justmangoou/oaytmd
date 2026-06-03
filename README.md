@@ -11,9 +11,9 @@ It is intended to be a minimal controller for YouTube Music Desktop and only inc
 ### Actions
 - Play / Pause (not implemented yet)
 - Next / Previous Track
-- Volume Control (Encoder) (not implemented yet)
+- Volume Control (Encoder)
 - Shuffle
-- Repeat (not implemented yet)
+- Repeat
 
 ### Credits
 - Action icons generated with Claude Sonnet 4.6
