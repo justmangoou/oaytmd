@@ -128,7 +128,7 @@ impl Client {
 			settings.token.as_deref(),
 		)
 		.await?
-		.ok_or_else(|| crate::Error::UnexpectedResponse("No auth code received".into()))
+		.ok_or_else(|| Error::UnexpectedResponse("No auth code received".into()))
 	}
 
 	async fn auth_request(&self, code: String) -> Result<AuthResponse> {
@@ -144,7 +144,7 @@ impl Client {
 			settings.token.as_deref(),
 		)
 		.await?
-		.ok_or_else(|| crate::Error::UnexpectedResponse("No auth token received".into()))
+		.ok_or_else(|| Error::UnexpectedResponse("No auth token received".into()))
 	}
 
 	pub async fn send_command(&self, command: &CommandRequest) -> Result<()> {

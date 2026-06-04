@@ -76,6 +76,7 @@ async fn reinitialize() {
 	let client = match setup_client(client_settings).await {
 		Ok(client) => {
 			reconnecting_flag().store(false, Ordering::SeqCst);
+			update_error(None).await;
 			client
 		}
 		Err(e) => {

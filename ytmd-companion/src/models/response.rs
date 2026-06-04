@@ -34,7 +34,7 @@ pub struct Player {
 	pub queue: Option<Queue>,
 }
 
-/// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#queue-object>
+/// Minimized of <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#queue-object>
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Queue {
@@ -44,7 +44,7 @@ pub struct Queue {
 	pub is_generating: bool,
 	pub is_infinite: bool,
 	pub repeat_mode: RepeatMode,
-	pub selected_item_index: Option<u32>,
+	// pub selected_item_index: Option<u32>,
 }
 
 /// <https://ytmdesktop.github.io/developer/companion-server/reference/v1/state.html#queue-item-object>
