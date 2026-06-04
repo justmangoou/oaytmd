@@ -3,16 +3,19 @@ use rust_socketio::Payload;
 use serde_json::Value;
 use tokio::sync::broadcast;
 
-use crate::models::response::{StateResponse, WebsocketEvent};
+use crate::{
+	Error, Result,
+	models::response::{StateResponse, WebsocketEvent},
+};
 
 pub struct SocketClient {
-    #[allow(dead_code)]
+	#[allow(dead_code)]
 	pub inner: rust_socketio::asynchronous::Client,
 	pub events: broadcast::Sender<WebsocketEvent>,
 }
 
 impl SocketClient {
-	pub async fn connect(base_url: impl Into<String>, token: Option<String>) -> Self {
+	pub async fn connect(base_url: impl Into<String>, token: Option<String>) -> Result<Self> {
 		let (events, _) = broadcast::channel(128);
 
 		let state_events = events.clone();
@@ -70,12 +73,12 @@ impl SocketClient {
 			})
 			.connect()
 			.await
-			.expect("Failed to connect to socket server");
+			.map_err(|_| Error::UnableToConnect)?;
 
-		Self {
+		Ok(Self {
 			inner: client,
 			events,
-		}
+		})
 	}
 
 	pub fn subscribe(&self) -> broadcast::Receiver<WebsocketEvent> {

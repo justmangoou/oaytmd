@@ -9,6 +9,9 @@ pub enum Error {
 		message: Option<String>,
 	},
 
+	#[error("Unable to connect to YTMD")]
+	UnableToConnect,
+
 	#[error("Socket client not connected")]
 	SocketClientNotConnected,
 

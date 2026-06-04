@@ -51,7 +51,7 @@ impl Client {
 	}
 
 	pub async fn connect(&self, force_reauth: bool) -> Result<()> {
-	    let current_settings = self.settings.load();
+		let current_settings = self.settings.load();
 
 		let settings = if force_reauth || current_settings.token.is_none() {
 			let code_resp = self.auth_request_code().await?;
@@ -73,7 +73,7 @@ impl Client {
 
 		// Reads fresh host, port, and token cleanly from unified Arc context
 		let socket_client =
-			socket::SocketClient::connect(&settings.base_url(), settings.token.clone()).await;
+			socket::SocketClient::connect(&settings.base_url(), settings.token.clone()).await?;
 
 		self.socket.store(Some(Arc::new(socket_client)));
 

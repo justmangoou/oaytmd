@@ -7,7 +7,7 @@ use openaction::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::client::reinitialize;
+use crate::client::schedule_reconnect;
 
 mod actions;
 mod client;
@@ -78,7 +78,7 @@ impl global_events::GlobalEventHandler for GlobalEventHandler {
 			// Persist configuration change instantly across threads
 			current_settings().store(Arc::new(settings));
 
-			reinitialize().await;
+			schedule_reconnect();
 		}
 
 		Ok(())

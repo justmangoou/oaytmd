@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use openaction::{Action, Instance, OpenActionResult, async_trait};
 use oaytmd_companion::models::{TrackState, request::CommandRequest};
+use openaction::{Action, Instance, OpenActionResult, async_trait};
 
 use crate::{actions::send_command, client::ytmd_player};
 
@@ -9,10 +9,8 @@ pub struct PlayPauseAction;
 
 async fn set_new_state(instance: &Instance, state: &TrackState) -> OpenActionResult<()> {
 	let new_state = match state {
-        TrackState::Unknown |
-        TrackState::Buffering |
-		TrackState::Playing => 0,
-		TrackState::Paused => 1,
+		TrackState::Unknown | TrackState::Paused => 0,
+		TrackState::Buffering | TrackState::Playing => 1,
 	};
 
 	instance.set_state(new_state).await

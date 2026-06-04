@@ -1,6 +1,6 @@
+use oaytmd_companion::models::request::CommandRequest;
 use openaction::{Action, Instance, OpenActionResult, async_trait};
 use serde::{Deserialize, Serialize};
-use oaytmd_companion::models::request::CommandRequest;
 
 use crate::{actions::send_command, client::ytmd_player};
 
@@ -46,13 +46,13 @@ impl Action for VolumeControlAction {
 		ticks: i16,
 		_pressed: bool,
 	) -> OpenActionResult<()> {
-	    let current_volume = ytmd_player().load().volume as i16;
-	    let delta = ticks * settings.step_size as i16;
+		let current_volume = ytmd_player().load().volume as i16;
+		let delta = ticks * settings.step_size as i16;
 
 		if (current_volume == 0 && delta < 0) || (current_volume == 100 && delta > 0) {
-		    instance.show_alert().await?;
-            return Ok(());
-        }
+			instance.show_alert().await?;
+			return Ok(());
+		}
 
 		let mut accumulated = VOLUME_CHANGE_ACCUMULATOR.lock().await;
 		*accumulated += delta;

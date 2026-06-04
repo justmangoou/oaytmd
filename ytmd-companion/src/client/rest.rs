@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::Result;
+use crate::{Error, Result};
 
 pub(super) struct RestClient {
 	client: reqwest::Client,
@@ -92,12 +92,12 @@ impl RestClient {
 		if !status.is_success() {
 			// Try to read the error body, but if it fails, create a generic error
 			let body = response.text().await.ok();
-			return Err(crate::Error::Upstream {
+			return Err(Error::Upstream {
 				status_code: status.as_u16(),
 				message: body,
 			});
 		}
 
-		response.json::<T>().await.map_err(crate::Error::Reqwest)
+		response.json::<T>().await.map_err(Error::Reqwest)
 	}
 }
